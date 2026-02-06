@@ -181,7 +181,7 @@
 			color: white;
 		}
 
-		.btn-primary:hover {
+		.btn-primary:hover:not(:disabled) {
 			transform: translateY(-2px);
 			box-shadow: 0 12px 30px rgba(255, 23, 68, 0.4);
 		}
@@ -447,7 +447,7 @@
 				<h3>1. What makes our relationship special?</h3>
 				<div class="options">
 					<div class="option" onclick="selectOption(this, 0)">The way we make each other laugh</div>
-					<div class="option" onclick="selectOption(this, 0)">How we understand each other</div>
+					<div class="option" onclick="selectOption(this, 0)">How we understand each other without words</div>
 					<div class="option" onclick="selectOption(this, 0)">Everything about it ❤️</div>
 				</div>
 			</div>
@@ -549,7 +549,10 @@
 
 		// ========== CONFETTI ==========
 		const canvas = document.getElementById("confettiCanvas");
-		const confettiInstance = confetti.create(canvas, { useWorker: true });
+		const confettiInstance = confetti.create(canvas, { 
+			resize: true,
+			useWorker: true 
+		});
 
 		// ========== PAGE NAVIGATION ==========
 		function nextPage(pageNum) {
@@ -731,19 +734,50 @@
 		}
 
 		function celebrate() {
-			const duration = 5000;
+			// Immediate big blast from center
+			confettiInstance({
+				particleCount: 150,
+				spread: 180,
+				startVelocity: 50,
+				origin: { x: 0.5, y: 0.5 },
+				colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+			});
+
+			// Side cannons after 200ms
+			setTimeout(() => {
+				confettiInstance({
+					particleCount: 100,
+					angle: 60,
+					spread: 55,
+					origin: { x: 0, y: 0.6 },
+					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+				});
+				confettiInstance({
+					particleCount: 100,
+					angle: 120,
+					spread: 55,
+					origin: { x: 1, y: 0.6 },
+					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+				});
+			}, 200);
+
+			// Continuous confetti rain from top corners
+			const duration = 4000;
 			const end = Date.now() + duration;
 
 			(function frame() {
 				confettiInstance({
-					particleCount: 8,
-					spread: 360,
-					startVelocity: 30,
-					gravity: 0.8,
-					origin: {
-						x: Math.random(),
-						y: Math.random() * 0.5
-					},
+					particleCount: 3,
+					angle: 60,
+					spread: 55,
+					origin: { x: 0, y: 0 },
+					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+				});
+				confettiInstance({
+					particleCount: 3,
+					angle: 120,
+					spread: 55,
+					origin: { x: 1, y: 0 },
 					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
 				});
 
@@ -752,21 +786,35 @@
 				}
 			})();
 
+			// Heart emoji explosion at 500ms
 			setTimeout(() => {
 				confettiInstance({
-					particleCount: 300,
+					particleCount: 50,
 					spread: 360,
-					startVelocity: 45,
-					gravity: 0.9,
+					startVelocity: 30,
 					origin: { x: 0.5, y: 0.5 },
-					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b']
+					shapes: ['circle'],
+					colors: ['#e63946', '#ff1744', '#ffccd5']
 				});
-			}, 300);
+			}, 500);
 
+			// Final big burst at 1 second
+			setTimeout(() => {
+				confettiInstance({
+					particleCount: 200,
+					spread: 200,
+					startVelocity: 60,
+					origin: { x: 0.5, y: 0.4 },
+					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+				});
+			}, 1000);
+
+			// Update button
 			const btn = document.querySelector('#page4 .btn-primary');
 			btn.textContent = '💕 Best Valentine Ever! 💕';
 			btn.disabled = true;
 			btn.style.opacity = '0.85';
+			btn.style.cursor = 'default';
 		}
 
 		function resizeConfettiCanvas() {
@@ -784,8 +832,6 @@
 
 		resizeConfettiCanvas();
 		window.addEventListener("resize", resizeConfettiCanvas);
-
-
 	</script>
 </body>
 
