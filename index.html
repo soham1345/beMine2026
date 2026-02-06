@@ -6,8 +6,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>A Special Message For You 💕</title>
 
-	<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-
 	<style>
 		:root {
 			--primary: #e63946;
@@ -403,6 +401,13 @@
 			-webkit-text-fill-color: transparent;
 		}
 
+		/* Confetti particle */
+		.confetti-particle {
+			position: fixed;
+			pointer-events: none;
+			z-index: 9999;
+		}
+
 		/* Responsive */
 		@media (max-width: 600px) {
 			.page {
@@ -419,7 +424,6 @@
 
 <body>
 	<div class="hearts-bg" id="heartsBg"></div>
-	<canvas id="confettiCanvas"></canvas>
 
 	<!-- PAGE 1: SIGNATURE -->
 	<div class="page active" id="page1">
@@ -547,12 +551,89 @@
 		// Keep creating hearts
 		setInterval(createFloatingHeart, 600);
 
-		// ========== CONFETTI ==========
-		const canvas = document.getElementById("confettiCanvas");
-		const confettiInstance = confetti.create(canvas, { 
-			resize: true,
-			useWorker: true 
-		});
+		// ========== CUSTOM CONFETTI ==========
+		function createConfetti(options = {}) {
+			const {
+				particleCount = 50,
+				spread = 70,
+				startVelocity = 45,
+				origin = { x: 0.5, y: 0.5 },
+				angle = 90,
+				colors = ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+			} = options;
+
+			const startX = origin.x * window.innerWidth;
+			const startY = origin.y * window.innerHeight;
+
+			for (let i = 0; i < particleCount; i++) {
+				const particle = document.createElement('div');
+				particle.className = 'confetti-particle';
+
+				// Random shape
+				const shapes = ['●', '■', '▲', '★', '❤'];
+				particle.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+
+				// Random color
+				particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+				particle.style.fontSize = (10 + Math.random() * 15) + 'px';
+
+				// Starting position
+				particle.style.left = startX + 'px';
+				particle.style.top = startY + 'px';
+
+				document.body.appendChild(particle);
+
+				// Calculate velocity
+				const spreadRad = (spread / 2) * Math.PI / 180;
+				const angleRad = angle * Math.PI / 180;
+				const randomAngle = angleRad + (Math.random() - 0.5) * spreadRad * 2;
+
+				const velocity = startVelocity * (0.5 + Math.random() * 0.5);
+				const vx = Math.cos(randomAngle) * velocity;
+				const vy = -Math.sin(randomAngle) * velocity;
+
+				// Animate
+				animateParticle(particle, startX, startY, vx, vy);
+			}
+		}
+
+		function animateParticle(particle, x, y, vx, vy) {
+			let posX = x;
+			let posY = y;
+			let velX = vx;
+			let velY = vy;
+			const gravity = 0.5;
+			const drag = 0.98;
+			let rotation = Math.random() * 360;
+			let rotationSpeed = (Math.random() - 0.5) * 20;
+			let opacity = 1;
+
+			function update() {
+				velY += gravity;
+				velX *= drag;
+				velY *= drag;
+
+				posX += velX;
+				posY += velY;
+				rotation += rotationSpeed;
+
+				// Fade out near the bottom
+				if (posY > window.innerHeight * 0.8) {
+					opacity -= 0.02;
+				}
+
+				particle.style.transform = `translate(${posX - x}px, ${posY - y}px) rotate(${rotation}deg)`;
+				particle.style.opacity = opacity;
+
+				if (opacity > 0 && posY < window.innerHeight + 100) {
+					requestAnimationFrame(update);
+				} else {
+					particle.remove();
+				}
+			}
+
+			update();
+		}
 
 		// ========== PAGE NAVIGATION ==========
 		function nextPage(pageNum) {
@@ -726,38 +807,33 @@
 			gameMessage.style.display = 'block';
 
 			// Small confetti celebration
-			confettiInstance({
-				particleCount: 50,
-				spread: 70,
-				origin: { y: 0.6 }
-			});
+			createConfetti({ particleCount: 50, spread: 70, origin: { x: 0.5, y: 0.6 } });
 		}
 
 		function celebrate() {
+			console.log('Celebrate function called!'); // Debug
+
 			// Immediate big blast from center
-			confettiInstance({
+			createConfetti({
 				particleCount: 150,
 				spread: 180,
 				startVelocity: 50,
-				origin: { x: 0.5, y: 0.5 },
-				colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+				origin: { x: 0.5, y: 0.5 }
 			});
 
 			// Side cannons after 200ms
 			setTimeout(() => {
-				confettiInstance({
+				createConfetti({
 					particleCount: 100,
 					angle: 60,
 					spread: 55,
-					origin: { x: 0, y: 0.6 },
-					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+					origin: { x: 0, y: 0.6 }
 				});
-				confettiInstance({
+				createConfetti({
 					particleCount: 100,
 					angle: 120,
 					spread: 55,
-					origin: { x: 1, y: 0.6 },
-					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+					origin: { x: 1, y: 0.6 }
 				});
 			}, 200);
 
@@ -765,47 +841,45 @@
 			const duration = 4000;
 			const end = Date.now() + duration;
 
-			(function frame() {
-				confettiInstance({
+			function continuousRain() {
+				createConfetti({
 					particleCount: 3,
 					angle: 60,
 					spread: 55,
-					origin: { x: 0, y: 0 },
-					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+					startVelocity: 30,
+					origin: { x: 0, y: 0 }
 				});
-				confettiInstance({
+				createConfetti({
 					particleCount: 3,
 					angle: 120,
 					spread: 55,
-					origin: { x: 1, y: 0 },
-					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+					startVelocity: 30,
+					origin: { x: 1, y: 0 }
 				});
 
 				if (Date.now() < end) {
-					requestAnimationFrame(frame);
+					requestAnimationFrame(continuousRain);
 				}
-			})();
+			}
+			continuousRain();
 
-			// Heart emoji explosion at 500ms
+			// Heart explosion at 500ms
 			setTimeout(() => {
-				confettiInstance({
+				createConfetti({
 					particleCount: 50,
 					spread: 360,
 					startVelocity: 30,
-					origin: { x: 0.5, y: 0.5 },
-					shapes: ['circle'],
-					colors: ['#e63946', '#ff1744', '#ffccd5']
+					origin: { x: 0.5, y: 0.5 }
 				});
 			}, 500);
 
 			// Final big burst at 1 second
 			setTimeout(() => {
-				confettiInstance({
+				createConfetti({
 					particleCount: 200,
 					spread: 200,
 					startVelocity: 60,
-					origin: { x: 0.5, y: 0.4 },
-					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+					origin: { x: 0.5, y: 0.4 }
 				});
 			}, 1000);
 
@@ -816,22 +890,6 @@
 			btn.style.opacity = '0.85';
 			btn.style.cursor = 'default';
 		}
-
-		function resizeConfettiCanvas() {
-			const dpr = window.devicePixelRatio || 1;
-
-			canvas.width = window.innerWidth * dpr;
-			canvas.height = window.innerHeight * dpr;
-
-			canvas.style.width = window.innerWidth + "px";
-			canvas.style.height = window.innerHeight + "px";
-
-			const ctx = canvas.getContext("2d");
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-		}
-
-		resizeConfettiCanvas();
-		window.addEventListener("resize", resizeConfettiCanvas);
 	</script>
 </body>
 
