@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>A Special Message For You 💕</title>
+
+	<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+	<style>
+		:root {
+			--primary: #e63946;
+			--secondary: #ff1744;
+			--accent: #d62828;
+			--bg: #c1121f;
+			--light-red: #ff6b6b;
+			--pink: #ffccd5;
+		}
+
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			min-height: 100svh;
+			display: grid;
+			place-items: center;
+			background: linear-gradient(135deg, #c1121f 0%, #780000 50%, #370617 100%);
+			font-family: 'Segoe UI', system-ui, sans-serif;
+			overflow-x: hidden;
+			padding: 20px;
+			position: relative;
+		}
+
+		/* Floating hearts background */
+		.hearts-bg {
+			position: fixed;
+			inset: 0;
+			overflow: hidden;
+			pointer-events: none;
+			z-index: 1;
+		}
+
+		.floating-heart {
+			position: absolute;
+			color: rgba(255, 255, 255, 0.15);
+			font-size: 30px;
+			animation: floatUp 10s infinite ease-in;
+			text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+		}
+
+		@keyframes floatUp {
+			0% {
+				transform: translateY(100vh) rotate(0deg) scale(0.5);
+				opacity: 0;
+			}
+
+			10% {
+				opacity: 1;
+			}
+
+			90% {
+				opacity: 0.8;
+			}
+
+			100% {
+				transform: translateY(-20vh) rotate(360deg) scale(1.2);
+				opacity: 0;
+			}
+		}
+
+		#confettiCanvas {
+			position: fixed;
+			inset: 0;
+			pointer-events: none;
+			z-index: 9999;
+		}
+
+		/* Page Container */
+		.page {
+			display: none;
+			width: min(600px, 95vw);
+			padding: 48px 36px;
+			background: rgba(255, 255, 255, 0.98);
+			backdrop-filter: blur(20px);
+			border-radius: 32px;
+			box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5),
+				0 0 0 1px rgba(255, 107, 107, 0.2);
+			animation: fadeIn 0.6s ease-out;
+			position: relative;
+			z-index: 10;
+		}
+
+		.page.active {
+			display: block;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(30px) scale(0.95);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		h1 {
+			text-align: center;
+			font-size: clamp(28px, 5vw, 40px);
+			background: linear-gradient(135deg, var(--primary), var(--secondary));
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			margin-bottom: 24px;
+			font-weight: 800;
+		}
+
+		p {
+			text-align: center;
+			color: #555;
+			font-size: clamp(16px, 3vw, 18px);
+			line-height: 1.6;
+			margin-bottom: 32px;
+		}
+
+		/* ========== PAGE 1: SIGNATURE ========== */
+		.canvas-container {
+			background: #fff5f5;
+			border: 3px dashed #ffccd5;
+			border-radius: 16px;
+			margin: 32px 0;
+			position: relative;
+			overflow: hidden;
+			box-shadow: inset 0 2px 10px rgba(230, 57, 70, 0.1);
+		}
+
+		#signatureCanvas {
+			display: block;
+			width: 100%;
+			height: 250px;
+			cursor: crosshair;
+			touch-action: none;
+		}
+
+		.canvas-hint {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			color: #ffccd5;
+			font-size: 18px;
+			pointer-events: none;
+			font-style: italic;
+		}
+
+		.button-group {
+			display: flex;
+			gap: 12px;
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+
+		button {
+			padding: 14px 32px;
+			font-size: 16px;
+			font-weight: 700;
+			border: none;
+			border-radius: 50px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+		}
+
+		.btn-primary {
+			background: linear-gradient(135deg, var(--primary), var(--secondary));
+			color: white;
+		}
+
+		.btn-primary:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 12px 30px rgba(255, 23, 68, 0.4);
+		}
+
+		.btn-secondary {
+			background: #f0f0f0;
+			color: #666;
+		}
+
+		.btn-secondary:hover {
+			background: #e0e0e0;
+		}
+
+		/* ========== PAGE 2: QUIZ ========== */
+		.quiz-container {
+			margin: 32px 0;
+		}
+
+		.question {
+			background: linear-gradient(135deg, #fff5f5, #ffe0e6);
+			padding: 24px;
+			border-radius: 16px;
+			margin-bottom: 24px;
+			border: 2px solid #ffccd5;
+			box-shadow: 0 4px 15px rgba(230, 57, 70, 0.1);
+		}
+
+		.question h3 {
+			color: var(--accent);
+			margin-bottom: 16px;
+			font-size: 18px;
+		}
+
+		.options {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+		}
+
+		.option {
+			padding: 16px 20px;
+			background: white;
+			border: 2px solid #ffccd5;
+			border-radius: 12px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			font-size: 15px;
+		}
+
+		.option:hover {
+			border-color: var(--secondary);
+			background: #fff5f5;
+			transform: translateX(4px);
+			box-shadow: 0 4px 12px rgba(230, 57, 70, 0.15);
+		}
+
+		.option.selected {
+			border-color: var(--primary);
+			background: linear-gradient(135deg, #fff0f0, #ffe6e9);
+			font-weight: 600;
+			box-shadow: 0 4px 12px rgba(230, 57, 70, 0.2);
+		}
+
+		.quiz-result {
+			display: none;
+			text-align: center;
+			padding: 24px;
+			background: linear-gradient(135deg, #fff0f0, #ffe6e9);
+			border-radius: 16px;
+			margin-top: 24px;
+			border: 2px solid #ff6b6b;
+			box-shadow: 0 4px 20px rgba(230, 57, 70, 0.2);
+		}
+
+		.quiz-result h3 {
+			color: var(--accent);
+			margin-bottom: 12px;
+			font-size: 24px;
+		}
+
+		/* ========== PAGE 3: TIC-TAC-TOE ========== */
+		.game-info {
+			text-align: center;
+			margin-bottom: 24px;
+			font-size: 18px;
+			color: var(--accent);
+			font-weight: 600;
+		}
+
+		.board {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 12px;
+			max-width: 400px;
+			margin: 32px auto;
+		}
+
+		.cell {
+			aspect-ratio: 1;
+			background: #fff5f5;
+			border: 3px solid #ffccd5;
+			border-radius: 16px;
+			font-size: clamp(36px, 8vw, 56px);
+			cursor: pointer;
+			display: grid;
+			place-items: center;
+			transition: all 0.3s ease;
+			font-weight: bold;
+		}
+
+		.cell:hover:not(.taken) {
+			background: white;
+			border-color: var(--secondary);
+			transform: scale(1.05);
+			box-shadow: 0 4px 15px rgba(230, 57, 70, 0.2);
+		}
+
+		.cell.taken {
+			cursor: not-allowed;
+		}
+
+		.cell.heart {
+			color: var(--primary);
+			animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+		}
+
+		.cell.star {
+			color: #ffd700;
+			animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+		}
+
+		@keyframes popIn {
+			from {
+				transform: scale(0);
+			}
+
+			to {
+				transform: scale(1);
+			}
+		}
+
+		.game-message {
+			display: none;
+			text-align: center;
+			padding: 20px;
+			background: linear-gradient(135deg, #fff0f0, #ffe6e9);
+			border-radius: 16px;
+			margin-top: 24px;
+			border: 2px solid var(--secondary);
+			box-shadow: 0 4px 20px rgba(230, 57, 70, 0.2);
+		}
+
+		.game-message h3 {
+			color: var(--primary);
+			font-size: 22px;
+			margin-bottom: 8px;
+		}
+
+		/* ========== PAGE 4: FINAL REVEAL ========== */
+		.final-message {
+			text-align: center;
+		}
+
+		.final-message h1 {
+			font-size: clamp(32px, 6vw, 48px);
+			margin-bottom: 32px;
+			animation: heartBeat 1.5s infinite;
+		}
+
+		@keyframes heartBeat {
+
+			0%,
+			100% {
+				transform: scale(1);
+			}
+
+			10%,
+			30% {
+				transform: scale(1.1);
+			}
+
+			20%,
+			40% {
+				transform: scale(1);
+			}
+		}
+
+		.final-message .big-emoji {
+			font-size: 80px;
+			margin: 24px 0;
+			animation: float 3s ease-in-out infinite;
+		}
+
+		@keyframes float {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-20px);
+			}
+		}
+
+		.final-message p {
+			font-size: clamp(18px, 4vw, 24px);
+			color: #333;
+			line-height: 1.8;
+			margin: 16px 0;
+		}
+
+		.final-message .signature {
+			margin-top: 32px;
+			font-size: 20px;
+			font-weight: 700;
+			background: linear-gradient(135deg, var(--primary), var(--accent));
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+		}
+
+		/* Responsive */
+		@media (max-width: 600px) {
+			.page {
+				padding: 32px 24px;
+			}
+
+			button {
+				padding: 12px 24px;
+				font-size: 14px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="hearts-bg" id="heartsBg"></div>
+	<canvas id="confettiCanvas"></canvas>
+
+	<!-- PAGE 1: SIGNATURE -->
+	<div class="page active" id="page1">
+		<h1>Welcome! Aayushi</h1>
+		<p>Sign if you are sure about this...</p>
+
+		<div class="canvas-container">
+			<canvas id="signatureCanvas"></canvas>
+			<div class="canvas-hint" id="canvasHint">Sign with your finger or mouse</div>
+		</div>
+
+		<div class="button-group">
+			<button class="btn-secondary" onclick="clearSignature()">Clear</button>
+			<button class="btn-primary" onclick="nextPage(2)" id="signBtn" disabled>Continue</button>
+		</div>
+	</div>
+
+	<!-- PAGE 2: QUIZ -->
+	<div class="page" id="page2">
+		<h1>Firstly...a quiz</h1>
+		<p>Answer these questions about us! (Pick what feels right 😊)</p>
+
+		<div class="quiz-container">
+			<div class="question">
+				<h3>1. What makes our relationship special?</h3>
+				<div class="options">
+					<div class="option" onclick="selectOption(this, 0)">The way we make each other laugh</div>
+					<div class="option" onclick="selectOption(this, 0)">How we understand each other</div>
+					<div class="option" onclick="selectOption(this, 0)">Everything about it ❤️</div>
+				</div>
+			</div>
+
+			<div class="question">
+				<h3>2. What's your favorite thing we do together?</h3>
+				<div class="options">
+					<div class="option" onclick="selectOption(this, 1)">Our late night conversations</div>
+					<div class="option" onclick="selectOption(this, 1)">Just being together, doing nothing</div>
+					<div class="option" onclick="selectOption(this, 1)">Every moment with you ❤️</div>
+				</div>
+			</div>
+
+			<div class="question">
+				<h3>3. Will you be my Valentine?</h3>
+				<div class="options">
+					<div class="option" onclick="selectOption(this, 2)">Yes! ❤️</div>
+					<div class="option" onclick="selectOption(this, 2)">Absolutely! ❤️</div>
+					<div class="option" onclick="selectOption(this, 2)">Of course! ❤️</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="quiz-result" id="quizResult">
+			<h3>Perfect answers! 🎉</h3>
+			<p>I knew you'd understand... because we're perfect together!</p>
+			<button class="btn-primary" onclick="nextPage(3)" style="margin-top: 16px;">Next Challenge 🎮</button>
+		</div>
+	</div>
+
+	<!-- PAGE 3: TIC-TAC-TOE -->
+	<div class="page" id="page3">
+		<h1>But first...win My Heart</h1>
+		<p>Play Tic-Tac-Toe with me! You're ❤️ and I'm ⭐</p>
+
+		<div class="game-info" id="gameInfo">Your turn! Place your ❤️</div>
+
+		<div class="board" id="board">
+			<div class="cell" onclick="makeMove(0)"></div>
+			<div class="cell" onclick="makeMove(1)"></div>
+			<div class="cell" onclick="makeMove(2)"></div>
+			<div class="cell" onclick="makeMove(3)"></div>
+			<div class="cell" onclick="makeMove(4)"></div>
+			<div class="cell" onclick="makeMove(5)"></div>
+			<div class="cell" onclick="makeMove(6)"></div>
+			<div class="cell" onclick="makeMove(7)"></div>
+			<div class="cell" onclick="makeMove(8)"></div>
+		</div>
+
+		<div class="game-message" id="gameMessage">
+			<h3>You won my heart! ❤️</h3>
+			<p>Just like you always do... ✨</p>
+			<button class="btn-primary" onclick="nextPage(4)" style="margin-top: 16px;">See What I Have to Say
+				❤️</button>
+		</div>
+	</div>
+
+	<!-- PAGE 4: FINAL REVEAL -->
+	<div class="page" id="page4">
+		<div class="final-message">
+			<div class="big-emoji">❤️</div>
+			<h1>Will You Be My Valentine? ❤️</h1>
+			<p>After all these games and fun,</p>
+			<p>I have just one question for you...</p>
+			<p>Will you make this Valentine's Day special just like last year by being mine? 🌹</p>
+			<p class="signature">I'm already yours ❤️</p>
+
+			<button class="btn-primary" onclick="celebrate()"
+				style="margin-top: 32px; font-size: 18px; padding: 16px 40px;">
+				I'd Love To! ❤️
+			</button>
+		</div>
+	</div>
+
+	<script>
+		// ========== FLOATING HEARTS BACKGROUND ==========
+		const heartsBg = document.getElementById('heartsBg');
+
+		function createFloatingHeart() {
+			const heart = document.createElement('div');
+			heart.className = 'floating-heart';
+			heart.innerHTML = '❤️';
+			heart.style.left = Math.random() * 100 + '%';
+			heart.style.animationDuration = (8 + Math.random() * 4) + 's';
+			heart.style.animationDelay = Math.random() * 3 + 's';
+			heart.style.fontSize = (20 + Math.random() * 20) + 'px';
+			heartsBg.appendChild(heart);
+
+			setTimeout(() => heart.remove(), 15000);
+		}
+
+		// Create initial hearts
+		for (let i = 0; i < 15; i++) {
+			createFloatingHeart();
+		}
+
+		// Keep creating hearts
+		setInterval(createFloatingHeart, 600);
+
+		// ========== CONFETTI ==========
+		const canvas = document.getElementById("confettiCanvas");
+		const confettiInstance = confetti.create(canvas, { useWorker: true });
+
+		// ========== PAGE NAVIGATION ==========
+		function nextPage(pageNum) {
+			document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+			document.getElementById('page' + pageNum).classList.add('active');
+			window.scrollTo(0, 0);
+		}
+
+		// ========== PAGE 1: SIGNATURE ==========
+		const signCanvas = document.getElementById('signatureCanvas');
+		const signCtx = signCanvas.getContext('2d');
+		const hint = document.getElementById('canvasHint');
+		const signBtn = document.getElementById('signBtn');
+
+		let isDrawing = false;
+		let hasDrawn = false;
+
+		// Set canvas size
+		function resizeCanvas() {
+			const rect = signCanvas.getBoundingClientRect();
+			signCanvas.width = rect.width;
+			signCanvas.height = rect.height;
+		}
+		resizeCanvas();
+		window.addEventListener('resize', resizeCanvas);
+
+		signCtx.strokeStyle = '#e63946';
+		signCtx.lineWidth = 3;
+		signCtx.lineCap = 'round';
+		signCtx.lineJoin = 'round';
+
+		function startDrawing(e) {
+			isDrawing = true;
+			hasDrawn = true;
+			hint.style.display = 'none';
+			signBtn.disabled = false;
+			const pos = getPosition(e);
+			signCtx.beginPath();
+			signCtx.moveTo(pos.x, pos.y);
+		}
+
+		function draw(e) {
+			if (!isDrawing) return;
+			const pos = getPosition(e);
+			signCtx.lineTo(pos.x, pos.y);
+			signCtx.stroke();
+		}
+
+		function stopDrawing() {
+			isDrawing = false;
+		}
+
+		function getPosition(e) {
+			const rect = signCanvas.getBoundingClientRect();
+			const x = (e.clientX || e.touches[0].clientX) - rect.left;
+			const y = (e.clientY || e.touches[0].clientY) - rect.top;
+			return { x, y };
+		}
+
+		signCanvas.addEventListener('mousedown', startDrawing);
+		signCanvas.addEventListener('mousemove', draw);
+		signCanvas.addEventListener('mouseup', stopDrawing);
+		signCanvas.addEventListener('mouseout', stopDrawing);
+
+		signCanvas.addEventListener('touchstart', startDrawing);
+		signCanvas.addEventListener('touchmove', draw);
+		signCanvas.addEventListener('touchend', stopDrawing);
+
+		function clearSignature() {
+			signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
+			hint.style.display = 'block';
+			signBtn.disabled = true;
+			hasDrawn = false;
+		}
+
+		// ========== PAGE 2: QUIZ ==========
+		const selectedAnswers = [false, false, false];
+
+		function selectOption(element, questionIndex) {
+			// Clear previous selection in this question
+			const question = element.parentElement;
+			question.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+
+			// Select this option
+			element.classList.add('selected');
+			selectedAnswers[questionIndex] = true;
+
+			// Check if all questions answered
+			if (selectedAnswers.every(a => a)) {
+				setTimeout(() => {
+					document.getElementById('quizResult').style.display = 'block';
+					document.getElementById('quizResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+				}, 500);
+			}
+		}
+
+		// ========== PAGE 3: TIC-TAC-TOE ==========
+		let board = ['', '', '', '', '', '', '', '', ''];
+		let currentPlayer = '❤️';
+		let gameActive = true;
+
+		const winPatterns = [
+			[0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+			[0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+			[0, 4, 8], [2, 4, 6] // diagonals
+		];
+
+		function makeMove(index) {
+			if (!gameActive || board[index] !== '') return;
+
+			// Player move
+			board[index] = '❤️';
+			const cells = document.querySelectorAll('.cell');
+			cells[index].textContent = '❤️';
+			cells[index].classList.add('taken', 'heart');
+
+			if (checkWin('❤️')) {
+				endGame('You won my heart! 💖');
+				return;
+			}
+
+			if (board.every(cell => cell !== '')) {
+				endGame("It's a draw! But you still won my heart 💕");
+				return;
+			}
+
+			// AI move (intentionally lets player win eventually)
+			currentPlayer = '⭐';
+			document.getElementById('gameInfo').textContent = 'My turn... ⭐';
+
+			setTimeout(() => {
+				makeAIMove();
+			}, 600);
+		}
+
+		function makeAIMove() {
+			// AI strategy: make it winnable for the player
+			const emptyCells = board.map((cell, idx) => cell === '' ? idx : null).filter(idx => idx !== null);
+
+			// Don't win if AI can win (let player win)
+			// Just pick a random empty cell
+			if (emptyCells.length > 0) {
+				const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+				board[randomIndex] = '⭐';
+				const cells = document.querySelectorAll('.cell');
+				cells[randomIndex].textContent = '⭐';
+				cells[randomIndex].classList.add('taken', 'star');
+
+				if (checkWin('⭐')) {
+					// Shouldn't happen with this AI, but just in case
+					setTimeout(() => makeAIMove(), 300);
+					return;
+				}
+			}
+
+			currentPlayer = '❤️';
+			document.getElementById('gameInfo').textContent = 'Your turn! Place your ❤️';
+		}
+
+		function checkWin(player) {
+			return winPatterns.some(pattern => {
+				return pattern.every(index => board[index] === player);
+			});
+		}
+
+		function endGame(message) {
+			gameActive = false;
+			document.getElementById('gameInfo').textContent = '';
+			const gameMessage = document.getElementById('gameMessage');
+			gameMessage.querySelector('h3').textContent = message;
+			gameMessage.style.display = 'block';
+
+			// Small confetti celebration
+			confettiInstance({
+				particleCount: 50,
+				spread: 70,
+				origin: { y: 0.6 }
+			});
+		}
+
+		function celebrate() {
+			const duration = 5000;
+			const end = Date.now() + duration;
+
+			(function frame() {
+				confettiInstance({
+					particleCount: 8,
+					spread: 360,
+					startVelocity: 30,
+					gravity: 0.8,
+					origin: {
+						x: Math.random(),
+						y: Math.random() * 0.5
+					},
+					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b', '#ffccd5']
+				});
+
+				if (Date.now() < end) {
+					requestAnimationFrame(frame);
+				}
+			})();
+
+			setTimeout(() => {
+				confettiInstance({
+					particleCount: 300,
+					spread: 360,
+					startVelocity: 45,
+					gravity: 0.9,
+					origin: { x: 0.5, y: 0.5 },
+					colors: ['#e63946', '#ff1744', '#d62828', '#ff6b6b']
+				});
+			}, 300);
+
+			const btn = document.querySelector('#page4 .btn-primary');
+			btn.textContent = '💕 Best Valentine Ever! 💕';
+			btn.disabled = true;
+			btn.style.opacity = '0.85';
+		}
+
+		function resizeConfettiCanvas() {
+			const dpr = window.devicePixelRatio || 1;
+
+			canvas.width = window.innerWidth * dpr;
+			canvas.height = window.innerHeight * dpr;
+
+			canvas.style.width = window.innerWidth + "px";
+			canvas.style.height = window.innerHeight + "px";
+
+			const ctx = canvas.getContext("2d");
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		}
+
+		resizeConfettiCanvas();
+		window.addEventListener("resize", resizeConfettiCanvas);
+
+
+	</script>
+</body>
+
+</html>
